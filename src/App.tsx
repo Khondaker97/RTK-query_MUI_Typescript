@@ -1,57 +1,74 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import { useGetRecipesMutation } from "./services/recipeApi";
+import Navbar from "./Components/Navbar";
+import { Container, Grid, Skeleton, Stack, Typography } from "@mui/material";
+import RecipeCard from "./Components/Card";
 
+export interface Meal {
+  strMeal: string;
+  idMeal: string;
+  strMealThumb: string;
+  strInstructions: string;
+}
+const style = {
+  padding: "2rem 1rem",
+  marginTop: "1rem",
+  border: "2px solid rgba(201, 214, 228, 0.2)",
+  borderRadius: "10px",
+  boxShadow: "2px 5px 15px rgba(0,0,0,0.2)",
+};
 function App() {
+  const [query, setQuery] = useState<string>("");
+  // eslint-disable-next-line
+  const [getRecipes, { isLoading, data }] = useGetRecipesMutation();
+  useEffect(() => {
+    const getFoodRecipes = async () => {
+      await getRecipes({ query }); //must be same name
+    };
+    getFoodRecipes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
-    </div>
+    <>
+      <Navbar search={query} setSearch={setQuery} />
+      <Container>
+        <Typography sx={{ margin: "2rem 0", fontSize: "2rem" }}>
+          Check Our Recipe
+        </Typography>
+        <Grid container spacing={2}>
+          {data ? (
+            data &&
+            data?.meals?.map((meal: Meal) => (
+              <Grid item xs={6} md={4} key={meal.idMeal}>
+                <RecipeCard meal={meal} />
+              </Grid>
+            ))
+          ) : (
+            <Grid item xs={6} md={4}>
+              <Stack spacing={1} sx={style}>
+                <Skeleton
+                  animation="wave"
+                  variant="rectangular"
+                  width="100%"
+                  height={80}
+                />
+                <Skeleton
+                  animation="wave"
+                  variant="rounded"
+                  width="100%"
+                  height={30}
+                />
+                <Skeleton
+                  variant="text"
+                  sx={{ fontSize: "1rem" }}
+                  width="30%"
+                />
+              </Stack>
+            </Grid>
+          )}
+        </Grid>
+      </Container>
+    </>
   );
 }
 
